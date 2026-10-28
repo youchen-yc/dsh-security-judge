@@ -1894,6 +1894,13 @@ window.__ModuleLoader__.load({
         if (result) setSettingsDraft(null)
       }
 
+      // 改动约 1 秒后自动保存；避免「改了数字没点保存、刷新就没了」
+      useEffect(() => {
+        if (!settingsDraft || !draftDirty) return
+        const timer = setTimeout(() => { saveSettings() }, 900)
+        return () => clearTimeout(timer)
+      }, [settingsDraft, draftDirty])
+
       const toggleExpanded = (sessionId) => {
         if (!sessionId) return
         setExpanded((current) => ({ ...current, [sessionId]: current[sessionId] !== true }))
@@ -2167,9 +2174,15 @@ window.__ModuleLoader__.load({
               value: settingsValues.maxEnforcePerSession,
               disabled: anyBusy,
               onChange: (event) => updateDraft({ maxEnforcePerSession: event.target.value }),
+              onKeyDown: (event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault()
+                  saveSettings()
+                }
+              },
             }),
             h('p', { style: S.fieldHint },
-              '0 = 合格为止，不设上限（默认）。大于 0 时到点停止自动催办，但结论仍是不合格，等用户处理。范围 0~200。'),
+              '0 = 合格为止，不设上限（默认）。大于 0 时到点停止自动催办，但结论仍是不合格，等用户处理。范围 0~200。改动约 1 秒后自动保存，也可按回车或点「保存设置」。'),
           ),
         ),
         h('hr', { style: S.divider }),
