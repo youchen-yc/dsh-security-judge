@@ -1405,17 +1405,15 @@ window.__ModuleLoader__.load({
           }, remindBusy ? '提醒中…' : '提醒该会话'),
           h('button', {
             type: 'button',
-            style: anyBusy || !code.doing || !session.id || !authorityGranted
+            style: anyBusy || !code.doing || !session.id
               ? { ...S.buttonSecondary, ...S.buttonDisabled }
               : S.buttonSecondary,
-            disabled: anyBusy || !code.doing || !session.id || !authorityGranted,
-            title: !authorityGranted
-              ? '暂停/恢复强制重做需要先在授权卡授予评审权限'
-              : '用户最高权限：暂停后不再自动催办，但评审结论仍是不合格',
+            disabled: anyBusy || !code.doing || !session.id,
+            title: '用户最高权限：暂停后不再自动催办，但评审结论仍是不合格；未授权时只记录暂停意愿',
             onClick: () => props.onToggleEnforce(session.id, !review.enforcePaused),
           }, review.enforcePaused ? '恢复强制重做' : '暂停强制重做'),
           !authorityGranted
-            ? h('span', { style: S.tiny }, '提醒与强制重做属于评审权限，授权后才能使用。')
+            ? h('span', { style: S.tiny }, '提醒属于评审权限，授权后才能使用；暂停/恢复只记录用户意愿，随时可用。')
             : (!code.doing
               ? h('span', { style: S.tiny }, '该会话当前没有代码工作，提醒与重做按钮已禁用。')
               : null),
