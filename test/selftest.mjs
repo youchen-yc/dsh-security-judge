@@ -435,6 +435,20 @@ function ingestAll(state, events) {
   commentDoc.fileTexts = { 'lib/note.js': commentText }
   const commentStatus = (id) => (evaluate(commentDoc, {}).rules.find((rule) => rule.id === id) || {}).status
   eq(commentStatus('B-01'), 'auto-clear', '中文注释里的 md5( 示例不误判')
+
+  // 构建脚本里的本机绝对路径不算运行时违规（J-02 只约束运行时文件）
+  const buildScript = makeState({ id: 's10-build', cwd: 'F:/DSH1.0' })
+  ingestAll(buildScript, [
+    toolCall('write', { file_path: 'package.json', content: '{"name":"demo","version":"1.0.0"}' }),
+    toolCall('write', { file_path: 'build_catalog.py', content: 'OUT_DIR = r"F:\\\\DSH1.0"\n' }),
+  ])
+  buildScript.fileTexts = {
+    'package.json': '{"name":"demo","version":"1.0.0"}',
+    'build_catalog.py': 'OUT_DIR = r"F:\\\\DSH1.0"\n',
+  }
+  const buildEval = evaluate(buildScript, {})
+  const j02build = buildEval.rules.find((rule) => rule.id === 'J-02')
+  eq(j02build && j02build.status, 'auto-clear', '构建脚本里的本机绝对路径不触发 J-02')
 }
 
 // ---------------------------------------------------------------------------
