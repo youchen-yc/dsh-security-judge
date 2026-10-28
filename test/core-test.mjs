@@ -38,9 +38,9 @@ function arrFind(list, predicate) {
 
 /** 每个测试用独立数据目录，避免授权/设置互相污染。 */
 const tempDirs = []
-function coreFor(harness, version = 'test') {
-  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sj-core-test-'))
-  tempDirs.push(dataDir)
+function coreFor(harness, version = 'test', existingDir = '') {
+  const dataDir = existingDir || fs.mkdtempSync(path.join(os.tmpdir(), 'sj-core-test-'))
+  if (!existingDir) tempDirs.push(dataDir)
   return createCore({ ctx: harness.ctx, config: { dataDir }, log: harness.ctx.logger, pluginVersion: version })
 }
 function cleanupTempDirs() {
@@ -272,35 +272,53 @@ function toolCallData(name, args, turn = 1, step = 1) {
   ok(String(agent.steered[0].content[0].text).includes('重做'), '拦截消息要求重做')
   ok(String(agent.steered[0].content[0].text).includes('合格为止'), '拦截消息说明合格为止')
 
-  // 连续不合格：一直要求重做，不允许「催几次就放行」
+  // 连续不合格：一直要求重做；但连续 5 次从未提交评审 → 自动暂停（防止 AI 原地打转）
   for (let i = 0; i < 9; i += 1) {
     await harness.emit('agent/turn-stopping', { agent, turn: 1, signal: { aborted: false } })
   }
-  eq(agent.steered.length, 10, '持续不合格会一直要求重做，直到合格为止')
+  eq(agent.steered.length, 4, '连续 5 次未提交评审后自动暂停强制重做')
   const redoView = core.getSessionView('session-2')
-  eq(redoView.review.redoCount, 10, '会话视图记录重做次数')
+  eq(redoView.review.redoCount, 4, '会话视图记录重做次数')
   eq(redoView.review.unqualified, true, '未合格会话标记为不合格')
+  eq(redoView.review.enforcePaused, true, '自动暂停状态同步到会话视图')
   ok(String(agent.steered[2].content[0].text).includes('教学'), '第三次强制重做进入教学模式（教怎么做）')
   const coach = await core.toolCoach('session-2')
   eq(coach.ok, true, '工具 coach 可用')
   ok(String(coach.text).includes('怎么改'), '教学单包含怎么改')
   ok(Array.isArray(coach.plan.fixSteps), '教学单包含自动命中修复步骤字段')
   ok(Array.isArray(coach.plan.attestSteps) && coach.plan.attestSteps.length > 0, '教学单包含需要证据的规则')
+  ok(String(core.promptContextFor(agent)).includes('暂停'), '暂停时系统提示明确告知不再自动重做')
+
+  // 暂停状态持久化：重启（新 core 实例、同一数据目录）后仍然暂停
+  const dataDir2 = fs.mkdtempSync(path.join(os.tmpdir(), 'sj-core-test-'))
+  tempDirs.push(dataDir2)
+  const corePersist = coreFor(harness, 'test', dataDir2)
+  corePersist.start()
+  await wait(10)
+  await corePersist.dispatch('pause-enforce', { sessionId: 'session-2', paused: true })
+  await wait(10)
+  await corePersist.dispose()
+  const coreReload = coreFor(harness, 'test', dataDir2)
+  coreReload.start()
+  await wait(10)
+  const reloaded = coreReload.getSessionView('session-2')
+  eq(reloaded && reloaded.review.enforcePaused, true, '重启后暂停状态仍然保留')
+  await coreReload.dispose()
 
   // 用户最高权限：可以暂停/恢复强制重做（暂停后结论仍是不合格）
   const pause = await core.dispatch('pause-enforce', { sessionId: 'session-2', paused: true })
   eq(pause.ok, true, '用户可以暂停强制重做')
   await harness.emit('agent/turn-stopping', { agent, turn: 1, signal: { aborted: false } })
-  eq(agent.steered.length, 10, '暂停后不再强制重做')
+  eq(agent.steered.length, 4, '暂停后不再强制重做')
   eq(core.getSessionView('session-2').review.unqualified, true, '暂停不代表合格')
   await core.dispatch('pause-enforce', { sessionId: 'session-2', paused: false })
   await harness.emit('agent/turn-stopping', { agent, turn: 1, signal: { aborted: false } })
-  eq(agent.steered.length, 11, '恢复后继续强制重做')
+  eq(agent.steered.length, 5, '恢复后继续强制重做')
 
   // 用户自设保护阈值：到点停止自动催办，但结论仍是不合格
   await core.dispatch('settings-save', { patch: { maxEnforcePerSession: 2 } })
   await harness.emit('agent/turn-stopping', { agent, turn: 1, signal: { aborted: false } })
-  eq(agent.steered.length, 11, '达到用户设置的强制重做上限后停止自动催办')
+  eq(agent.steered.length, 5, '达到用户设置的强制重做上限后停止自动催办')
   eq(core.getSessionView('session-2').review.unqualified, true, '达到上限也不代表合格')
   await core.dispatch('settings-save', { patch: { maxEnforcePerSession: 0 } })
 
@@ -339,13 +357,13 @@ function toolCallData(name, args, turn = 1, step = 1) {
 
   // 通过后回合收尾不再拦截
   await harness.emit('agent/turn-stopping', { agent, turn: 2, signal: { aborted: false } })
-  eq(agent.steered.length, 11, '评审合格后不再拦截回合')
+  eq(agent.steered.length, 5, '评审合格后不再拦截回合')
   eq(core.getSessionView('session-2').review.redoCount, 0, '合格后重做计数清零')
 
   // 通过后再写代码 → 评审失效，回合再次拦截并要求重做
   await harness.emitSessionEvent('session-2', 'tool/call', toolCallData('edit', { file_path: 'serve/server.js', old_string: 'a', new_string: 'const q = "SELECT * FROM t WHERE id=" + req.query.id' }, 2))
   await harness.emit('agent/turn-stopping', { agent, turn: 2, signal: { aborted: false } })
-  eq(agent.steered.length, 12, '合格后改代码会让评审失效并再次拦截')
+  eq(agent.steered.length, 6, '合格后改代码会让评审失效并再次拦截')
   eq(core.getSessionView('session-2').review.redoCount, 1, '失效后重新计重做次数')
 
   // 处置
@@ -449,30 +467,39 @@ function toolCallData(name, args, turn = 1, step = 1) {
     return { status: response.statusCode, headers: response.headers, body: response.body ? JSON.parse(response.body) : null }
   }
 
-  // 1) 无令牌 GET 可以读（只读接口不要求令牌）；写操作没有令牌必须 401
+  // 1) 只读 GET 不需要令牌；跨站 Origin 一律 403
   const readNoToken = await call('GET', API_PREFIX + '/state', undefined, { token: '' })
   eq(readNoToken.status, 200, '无令牌 GET /state 仍可读取（只读接口）')
-  const writeNoToken = await call('POST', API_PREFIX + '/action', { action: 'grant-authority', payload: { confirm: true } }, { token: '' })
-  eq(writeNoToken.status, 401, '无令牌写操作返回 401')
-  eq(writeNoToken.body.error.code, 'unauthorized', '无令牌写操作错误码正确')
-  eq(core.getAuthority().granted, false, '无令牌不能授予评审权限')
-
-  // 2) 伪造令牌授权 → 401，且授权状态不变（防 CSRF 静默授权）
-  const forged = await call('POST', API_PREFIX + '/action', { action: 'grant-authority', payload: { confirm: true } }, { token: 'forged-token' })
-  eq(forged.status, 401, '伪造令牌不能调用接口')
-  eq(core.getAuthority().granted, false, '伪造令牌不能授予评审权限')
-
-  // 3) 跨站 Origin → 403
   const cross = await call('GET', API_PREFIX + '/state', undefined, { origin: 'https://evil.example' })
   eq(cross.status, 403, '跨站 Origin 被拒绝')
 
-  // 4) 正常请求：带页面令牌
+  // 2) 无 Origin（本机进程）写操作：没有令牌 401
+  const noOriginNoToken = await call('POST', API_PREFIX + '/action', { action: 'grant-authority', payload: { confirm: true } }, { origin: null, token: '' })
+  eq(noOriginNoToken.status, 401, '无 Origin 的本机写操作没有令牌返回 401')
+  eq(noOriginNoToken.body.error.code, 'unauthorized', '无 Origin 写操作错误码正确')
+  eq(core.getAuthority().granted, false, '无 Origin 且无令牌不能授予评审权限')
+
+  // 3) 无 Origin 但伪造令牌 → 401
+  const forged = await call('POST', API_PREFIX + '/action', { action: 'grant-authority', payload: { confirm: true } }, { origin: null, token: 'forged-token' })
+  eq(forged.status, 401, '伪造令牌不能调用接口')
+  eq(core.getAuthority().granted, false, '伪造令牌不能授予评审权限')
+
+  // 4) 同源浏览器写操作：允许不带令牌（即使页面令牌注入失败，面板按钮也能用）
+  const sameOriginNoToken = await call('POST', API_PREFIX + '/action', { action: 'grant-authority', payload: { confirm: true } }, { token: '' })
+  eq(sameOriginNoToken.status, 200, '同源写操作不强制要求页面令牌（修复“暂停没反应”）')
+  eq(sameOriginNoToken.body.ok, true, '同源写操作成功')
+  eq(core.getAuthority().granted, true, '同源请求可以授予评审权限')
+
+  // 5) 无 Origin 的本机进程带正确令牌 → 允许
+  const originNullValidToken = await call('POST', API_PREFIX + '/action', { action: 'settings-save', payload: { patch: { mode: 'advisory' } } }, { origin: null })
+  eq(originNullValidToken.status, 200, '无 Origin 的本机进程带正确令牌可以调用')
+
   const state = await call('GET', API_PREFIX + '/state')
-  eq(state.status, 200, '带页面令牌 GET /state 返回 200')
+  eq(state.status, 200, 'GET /state 返回 200')
   eq(state.body.ok, true, 'GET /state 返回 ok')
   ok(Array.isArray(state.body.sessions), 'GET /state 带 sessions')
   ok(Boolean(state.body.catalog && state.body.catalog.ruleGroups.length === 10), 'GET /state 带 10 组规则目录')
-  eq(state.body.authority.granted, false, 'GET /state 默认未授权')
+  eq(state.body.authority.granted, true, '同源授权后 GET /state 已授权')
 
   const optionsResponse = await call('OPTIONS', API_PREFIX + '/state', undefined, { token: '', origin: ORIGIN })
   eq(optionsResponse.status, 204, 'CORS 预检返回 204')

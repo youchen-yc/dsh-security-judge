@@ -1,15 +1,15 @@
 # 发布记录与操作手册（PUBLISHING）
 
-> 更新：2026-10-28。已发布/待发布状态如实记录，未完成的写明缺失的凭据或规则门槛。
+> 更新：2026-10-29。已发布/待发布状态如实记录，未完成的写明缺失的凭据或规则门槛。
 
 ## 状态总览
 
 | 渠道 | 状态 | 说明 |
 | --- | --- | --- |
-| GitHub 仓库 | ✅ 已发布 | https://github.com/youchen-yc/dsh-security-judge （tag `v1.5.3`） |
-| GitHub Release | ✅ 已发布 | https://github.com/youchen-yc/dsh-security-judge/releases/tag/v1.5.3 （tgz / sig / SBOM / VERIFICATION） |
-| Gitee 镜像 | ✅ 已发布 | https://gitee.com/youchen-yc/dsh-security-judge （main + `v1.5.3` tag；代码镜像，发行版资产未上传） |
-| npm | ✅ 已发布 | https://www.npmjs.com/package/dsh-security-judge （`1.5.3`，`latest`；registry shasum 与本地一致） |
+| GitHub 仓库 | ✅ 已发布 | https://github.com/youchen-yc/dsh-security-judge （最新 tag `v1.6.0`；`v1.5.3` 保留） |
+| GitHub Release | ✅ 已发布 | https://github.com/youchen-yc/dsh-security-judge/releases/tag/v1.6.0 （tgz / sig / SBOM / VERIFICATION） |
+| Gitee 镜像 | ✅ 已发布 | https://gitee.com/youchen-yc/dsh-security-judge （main + `v1.6.0` tag；代码镜像，发行版资产未上传） |
+| npm | ⏳ 待新 token | https://www.npmjs.com/package/dsh-security-judge 最新仍为 `1.5.3`；`1.6.0` 发布时 token 返回 401（已失效/撤销），需 `npm login` 或新 token |
 | 插件市场 | ⏳ 待满 1 天 | 条目文件已备好；awesome-dsh-plugin 要求目标仓库创建满 1 天才收 PR |
 
 ## npm

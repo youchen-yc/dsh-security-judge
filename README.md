@@ -57,7 +57,7 @@ plugin_manager install_bundle  target: <克隆目录的绝对路径>
 
 ### 4. npm
 
-包已发布：<https://www.npmjs.com/package/dsh-security-judge>（版本 `1.5.3`，`latest`）
+npm 上最新版本为 `1.5.3`（<https://www.npmjs.com/package/dsh-security-judge>）；`1.6.0` 需重新授权 npm token 后发布。
 
 ```text
 plugin_manager install_bundle  target: dsh-security-judge
