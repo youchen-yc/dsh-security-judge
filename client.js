@@ -871,6 +871,9 @@ window.__ModuleLoader__.load({
         status: STATUS_LABEL[text(s.status)] ? text(s.status) : 'unknown',
         createdAt: num(s.createdAt),
         lastActivityAt: num(s.lastActivityAt),
+        category: text(s.category, 'unknown'),
+        categoryName: text(s.categoryName, '未分类'),
+        categoryWhy: arr(s.categoryWhy).map((v) => text(v)).filter(Boolean),
         code: {
           doing: code.doing === true,
           score: clamp(num(code.score), 0, 100),
@@ -1441,6 +1444,10 @@ window.__ModuleLoader__.load({
             h('div', { style: S.sessionTitleRow },
               h('span', { style: S.sessionTitle }, session.title),
               h('span', { style: S.badgePlain }, STATUS_LABEL[session.status]),
+              h('span', {
+                style: S.chip,
+                title: session.categoryWhy.length ? session.categoryWhy.join('；') : '依据标题、用户要求与代码证据分类',
+              }, session.categoryName || '未分类'),
               code.doing
                 ? h('span', { style: S.chip }, `做代码 · ${projectKindText(code.projectKind)}`)
                 : h('span', { style: S.chipMuted }, '未见代码'),

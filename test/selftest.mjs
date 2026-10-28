@@ -20,6 +20,7 @@ import {
   rulesInScope,
   isServerKind,
   hasPythonServerEvidence,
+  classifySession,
 } from '../lib/engine.js'
 import { RULES, RULE_BY_ID, ARCH_BY_ID, CONFLICTS, AUTO_CHECKS } from '../lib/catalog.js'
 
@@ -503,6 +504,45 @@ function ingestAll(state, events) {
   requestScript.fileTexts = { 'tools/ping.py': reqText }
   refreshProfile(requestScript)
   eq(requestScript.code.projectKind, 'unknown', 'requests 脚本不误判为服务端')
+}
+
+// ---------------------------------------------------------------------------
+// 13. 会话分类：标题 + 用户要求 + 代码证据
+// ---------------------------------------------------------------------------
+{
+  const dev = makeState({ id: 's13-dev', title: '代码安全防御规则评审判官插件', cwd: 'F:/DSH1.0/security-judge' })
+  ingestAll(dev, [toolCall('write', { file_path: 'security-judge/lib/core.js', content: 'export const a = 1\n' })])
+  eq(dev.category, 'dev', '插件开发会话分类为开发实现')
+  eq(dev.categoryName, '开发实现', '会话分类带中文名称')
+
+  const review = makeState({ id: 's13-review', title: '代码安全防御架构规则与评审', cwd: 'F:/DSH1.0' })
+  const reviewPy = 'print("review")\n'
+  ingestAll(review, [toolCall('write', { file_path: 'tools/a.py', content: reviewPy })])
+  review.fileTexts = { 'tools/a.py': reviewPy }
+  refreshProfile(review)
+  eq(review.category, 'review', '架构评审/咨询标题分类为评审')
+
+  const app = makeState({ id: 's13-app', title: 'APP功能开发、合规与部署咨询', cwd: 'F:/DSH1.0/jizhang' })
+  ingestAll(app, [toolCall('write', { file_path: 'jizhang/AndroidManifest.xml', content: '<manifest/>' })])
+  eq(app.category, 'dev', 'APP 开发会话分类为开发实现')
+
+  const ops = makeState({ id: 's13-ops', title: '服务器部署与运维' })
+  refreshProfile(ops)
+  eq(ops.category, 'ops', '部署运维会话分类为运维部署')
+
+  const docs = makeState({ id: 's13-docs', title: 'README 文档整理' })
+  ingestAll(docs, [toolCall('write', { file_path: 'README.md', content: '# 文档\n' })])
+  eq(docs.category, 'docs', '文档会话分类为文档知识')
+
+  const byRequest = makeState({ id: 's13-req', title: '新会话' })
+  byRequest.userRequests = [{ text: '请帮我做架构评审与咨询', at: Date.now() }]
+  refreshProfile(byRequest)
+  eq(byRequest.category, 'review', '用户要求命中评审关键词 → 评审分类')
+
+  const view = buildSessionView(dev, {})
+  eq(view.categoryName, '开发实现', '会话视图带分类名称')
+  ok(Array.isArray(view.categoryWhy) && view.categoryWhy.length > 0, '会话视图带分类依据')
+  ok(typeof classifySession(app).category === 'string', 'classifySession 可直接调用')
 }
 
 // ---------------------------------------------------------------------------

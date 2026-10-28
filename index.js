@@ -20,7 +20,7 @@ import { createApiHandler, API_PREFIX } from './lib/httpapi.js'
 export const name = 'security-judge'
 export const inject = ['tools']
 
-const VERSION = '1.6.1'
+const VERSION = '1.6.2'
 
 function messageOf(error) {
   return String(error && error.message ? error.message : error)

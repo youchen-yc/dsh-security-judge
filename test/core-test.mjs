@@ -548,6 +548,9 @@ function toolCallData(name, args, turn = 1, step = 1) {
   const requestedView = core.getSessionView('session-6')
   eq(requestedView.code.doing, true, '评审口令把旧代码工作找回来')
   ok(requestedView.review.requestedAt > 0, '会话标记「用户已要求评审」')
+  const recordedRequests = (core.sessions.get('session-6') || {}).userRequests || []
+  ok(recordedRequests.some((item) => String(item.text).includes('检查审核评审该会话')), '用户要求被记录（供会话分类）')
+  ok(String(requestedView.categoryName || '').length > 0, '会话视图带分类名称')
   eq(agent.injected.length, 0, '未授权时受理评审不注入消息（只读）')
   ok(String(core.promptContextFor(agent)).includes('要求评审'), '系统提示告知评审要求')
   const requestedStatus = await core.toolStatus('session-6')
