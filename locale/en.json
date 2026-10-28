@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Code Security Defense Review Judge",
+    "description": "Detects sessions that are writing code, reviews their code security defense measures and architectures against the Code Security Defense Architecture Rules, recommends which architectures (one or several) the program needs, and checks for conflicts between them. Once the user grants review authority, a code session cannot count as complete until it passes review. The review authority sits below the user's highest authority and is used only for code security defense review."
+  }
+}

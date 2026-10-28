@@ -1,0 +1,60 @@
+{
+  "name": "dsh-security-judge",
+  "version": "1.5.3",
+  "description": "代码安全防御规则评审判官：自动识别正在做代码的会话，按《代码安全防御架构规则》强制评审其安全防御措施与所采用的代码安全防御架构，推荐该程序需要的架构（一种或多种）并检查架构之间的冲突；经用户授权后，在代码会话完成前拦截未通过评审的任务。评审权限低于用户最高权限，只用于代码安全防御评审。",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "lib/*.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "CONTRACT.md",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "docs/*.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true
+    }
+  },
+  "engines": {
+    "node": ">=20",
+    "dsh": ">=0.2.1-rc.1"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "security",
+    "code-security",
+    "security-architecture",
+    "review"
+  ],
+  "author": "鲸進進",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/youchen-yc/dsh-security-judge.git"
+  },
+  "homepage": "https://github.com/youchen-yc/dsh-security-judge#readme",
+  "bugs": {
+    "url": "https://github.com/youchen-yc/dsh-security-judge/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

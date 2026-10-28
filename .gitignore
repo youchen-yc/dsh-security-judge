@@ -1,0 +1,8 @@
+node_modules/
+dist/*.tgz
+dist/*.sig
+dist/SBOM.cdx.json
+dist/VERIFICATION.md
+*.log
+.DS_Store
+Thumbs.db

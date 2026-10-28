@@ -1,0 +1,4 @@
+- insert:
+    - id: security-judge
+      name: dsh-security-judge
+      config: {}
