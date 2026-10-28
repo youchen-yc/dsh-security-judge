@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 1.6.1 — 2026-10-29
+
+- 修 Python 项目判定：**普通 .py 脚本不再被当成服务端项目**。
+  - 判 server 需要「项目清单」或「服务端框架/HTTP 迹象」：
+    `requirements.txt`、`pyproject.toml`、`setup.py`、`Pipfile`、`manage.py`、`wsgi.py`、`asgi.py`、`Procfile`；
+    `http.server`、`socketserver`、`BaseHTTPRequestHandler`、`ThreadingHTTPServer`、`serve_forever`；
+    Flask / Django / FastAPI / Tornado / aiohttp / uvicorn / gunicorn / Starlette 等。
+  - 反模式检测同步使用同一判定，避免「脚本会话」被按服务端规则扫。
+  - 自测新增 5 组：普通脚本、标准库 http.server（漢舟·同心这类）、requirements.txt、Flask、requests 脚本；共 474 项全部通过。
+
 ## 1.6.0 — 2026-10-29
 
 - 修复「暂停强制重做没有用」：

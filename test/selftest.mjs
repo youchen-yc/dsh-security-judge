@@ -18,6 +18,8 @@ import {
   detectReviewRequest,
   distributionCandidate,
   rulesInScope,
+  isServerKind,
+  hasPythonServerEvidence,
 } from '../lib/engine.js'
 import { RULES, RULE_BY_ID, ARCH_BY_ID, CONFLICTS, AUTO_CHECKS } from '../lib/catalog.js'
 
@@ -446,6 +448,61 @@ function ingestAll(state, events) {
   ])
   eq(state.code.doing, false, 'present/read/grep 不产生代码写入')
   eq(state.code.writeCount, 0, '非写工具不增加写入计数')
+}
+
+// ---------------------------------------------------------------------------
+// 12. Python 判定：独立脚本 ≠ 服务端；有清单或服务端框架/HTTP 迹象才算
+// ---------------------------------------------------------------------------
+{
+  // 12.1 只写一个普通脚本（无清单、无框架）→ 不再判为 server
+  const script = makeState({ id: 's12-script', cwd: 'F:/DSH1.0/tools' })
+  const scriptText = 'import os\nprint("clean")\n'
+  ingestAll(script, [toolCall('write', { file_path: 'tools/cleanup.py', content: scriptText })])
+  script.fileTexts = { 'tools/cleanup.py': scriptText }
+  refreshProfile(script)
+  eq(script.code.projectKind, 'unknown', '普通 Python 脚本不再判为服务端')
+  eq(isServerKind(script), false, '普通脚本不是服务端项目')
+  eq(hasPythonServerEvidence(script), false, '普通脚本没有服务端证据')
+
+  // 12.2 标准库 http.server 服务（漢舟·同心这类）→ 仍判 server
+  const stdlib = makeState({ id: 's12-stdlib', cwd: 'F:/DSH1.0/teamhub' })
+  const stdlibText = [
+    'from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler',
+    'class Handler(BaseHTTPRequestHandler):',
+    '    pass',
+    'ThreadingHTTPServer(("0.0.0.0", 8770), Handler).serve_forever()',
+  ].join('\n') + '\n'
+  ingestAll(stdlib, [toolCall('write', { file_path: 'teamhub/app.py', content: stdlibText })])
+  stdlib.fileTexts = { 'teamhub/app.py': stdlibText }
+  refreshProfile(stdlib)
+  eq(stdlib.code.projectKind, 'server', '标准库 http.server 服务仍判为服务端')
+  ok(hasPythonServerEvidence(stdlib), '标准库 HTTP 服务算服务端证据')
+
+  // 12.3 有 requirements.txt 的项目 → server
+  const manifest = makeState({ id: 's12-manifest', cwd: 'F:/DSH1.0/svc' })
+  ingestAll(manifest, [
+    toolCall('write', { file_path: 'svc/requirements.txt', content: 'flask==3.0.0\n' }),
+    toolCall('write', { file_path: 'svc/main.py', content: 'print("x")\n' }),
+  ])
+  manifest.fileTexts = { 'svc/main.py': 'print("x")\n' }
+  refreshProfile(manifest)
+  eq(manifest.code.projectKind, 'server', '有 requirements.txt 的 Python 项目判为服务端')
+
+  // 12.4 Flask 框架迹象 → server
+  const flaskState = makeState({ id: 's12-flask', cwd: 'F:/DSH1.0/web' })
+  const flaskText = 'from flask import Flask\napp = Flask(__name__)\n'
+  ingestAll(flaskState, [toolCall('write', { file_path: 'web/app.py', content: flaskText })])
+  flaskState.fileTexts = { 'web/app.py': flaskText }
+  refreshProfile(flaskState)
+  eq(flaskState.code.projectKind, 'server', 'Flask 框架迹象判为服务端')
+
+  // 12.5 只是 requests 脚本 → 仍不是 server
+  const requestScript = makeState({ id: 's12-requests', cwd: 'F:/DSH1.0/tools' })
+  const reqText = 'import requests\nprint(requests.get("http://example.com").status_code)\n'
+  ingestAll(requestScript, [toolCall('write', { file_path: 'tools/ping.py', content: reqText })])
+  requestScript.fileTexts = { 'tools/ping.py': reqText }
+  refreshProfile(requestScript)
+  eq(requestScript.code.projectKind, 'unknown', 'requests 脚本不误判为服务端')
 }
 
 // ---------------------------------------------------------------------------
