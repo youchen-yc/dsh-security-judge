@@ -435,6 +435,7 @@ function toolCallData(name, args, turn = 1, step = 1) {
     const listeners = {}
     const headers = {}
     if (requestOrigin) headers.origin = requestOrigin
+    if (options.fetchSite) headers['sec-fetch-site'] = options.fetchSite
     if (token) headers['x-security-judge-token'] = token
     const req = {
       method,
@@ -470,7 +471,7 @@ function toolCallData(name, args, turn = 1, step = 1) {
   // 1) 只读 GET 不需要令牌；跨站 Origin 一律 403
   const readNoToken = await call('GET', API_PREFIX + '/state', undefined, { token: '' })
   eq(readNoToken.status, 200, '无令牌 GET /state 仍可读取（只读接口）')
-  const cross = await call('GET', API_PREFIX + '/state', undefined, { origin: 'https://evil.example' })
+  const cross = await call('GET', API_PREFIX + '/state', undefined, { origin: 'https://evil.example', token: '' })
   eq(cross.status, 403, '跨站 Origin 被拒绝')
 
   // 2) 无 Origin（本机进程）写操作：没有令牌 401
@@ -493,6 +494,12 @@ function toolCallData(name, args, turn = 1, step = 1) {
   // 5) 无 Origin 的本机进程带正确令牌 → 允许
   const originNullValidToken = await call('POST', API_PREFIX + '/action', { action: 'settings-save', payload: { patch: { mode: 'advisory' } } }, { origin: null })
   eq(originNullValidToken.status, 200, '无 Origin 的本机进程带正确令牌可以调用')
+
+  // 6) 桌面壳 / 自定义 scheme：Origin 可能为 null，但 Sec-Fetch-Site 仍是 same-origin
+  const shell = await call('POST', API_PREFIX + '/action', { action: 'settings-save', payload: { patch: { mode: 'block' } } }, { origin: 'null', token: '', fetchSite: 'same-origin' })
+  eq(shell.status, 200, '桌面壳 Origin=null + Sec-Fetch-Site=same-origin 可写（撤销/授权不再无响应）')
+  const shellCross = await call('POST', API_PREFIX + '/action', { action: 'settings-save', payload: { patch: { mode: 'advisory' } } }, { origin: 'null', token: '', fetchSite: 'cross-site' })
+  eq(shellCross.status, 403, 'Origin=null 但 Sec-Fetch-Site=cross-site 被拒绝')
 
   const state = await call('GET', API_PREFIX + '/state')
   eq(state.status, 200, 'GET /state 返回 200')

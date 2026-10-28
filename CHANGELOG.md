@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.6.4 — 2026-10-29
+
+- 修复桌面壳/自定义 scheme 下「撤销授权」点了没反应：面板页面的 `Origin` 可能是 `null` 或 `file://`，
+  旧逻辑把它当跨站 403。现在 `Sec-Fetch-Site: same-origin` 或页面令牌正确即视为面板本人；
+  真正跨站（`cross-site` 且无令牌）仍 403；无 Origin 的本机进程仍必须带令牌。
+- 自测新增「Origin=null + same-origin 可写」「Origin=null + cross-site 拒绝」；共 489 项通过。
+
 ## 1.6.3 — 2026-10-29
 
 - 修 J-02 误判：**构建/工具脚本**（`build_*.py`、`make_*.py`、`tools/`、`scripts/`）里的本机绝对路径不再算运行时违规；
