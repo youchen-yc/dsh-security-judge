@@ -9,7 +9,7 @@
 | GitHub 仓库 | ✅ 已发布 | https://github.com/youchen-yc/dsh-security-judge （tag `v1.5.3`） |
 | GitHub Release | ✅ 已发布 | https://github.com/youchen-yc/dsh-security-judge/releases/tag/v1.5.3 （tgz / sig / SBOM / VERIFICATION） |
 | Gitee 镜像 | ✅ 已发布 | https://gitee.com/youchen-yc/dsh-security-judge （main + `v1.5.3` tag；代码镜像，发行版资产未上传） |
-| npm | ⏳ 待授权 | 包名 `dsh-security-judge` 未占用；本机未 `npm login`，无 NPM_TOKEN |
+| npm | ✅ 已发布 | https://www.npmjs.com/package/dsh-security-judge （`1.5.3`，`latest`；registry shasum 与本地一致） |
 | 插件市场 | ⏳ 待满 1 天 | 条目文件已备好；awesome-dsh-plugin 要求目标仓库创建满 1 天才收 PR |
 
 ## npm

@@ -3,9 +3,9 @@
 ## 发布记录
 
 - GitHub：`https://github.com/youchen-yc/dsh-security-judge`（tag `v1.5.3`，Release 资产含 tgz / SBOM / 签名）
+- Gitee 镜像：`https://gitee.com/youchen-yc/dsh-security-judge`（main + `v1.5.3` tag）
+- npm：`https://www.npmjs.com/package/dsh-security-judge`（`1.5.3`，`latest`）
 - 插件市场：条目文件 `market/youchen-yc__dsh-security-judge.yml`，待仓库创建满 1 天后提交 awesome-dsh-plugin
-- npm：包名 `dsh-security-judge`（未占用；本机尚未 `npm login`，发布待用户授权）
-- Gitee 镜像：`https://gitee.com/youchen-yc/dsh-security-judge`（仓库待创建/授权后推送）
 
 ## 1.5.3 — 2026-10-28
 

@@ -55,7 +55,9 @@ git clone https://gitee.com/youchen-yc/dsh-security-judge    # Gitee 镜像
 plugin_manager install_bundle  target: <克隆目录的绝对路径>
 ```
 
-### 4. npm（发布后）
+### 4. npm
+
+包已发布：<https://www.npmjs.com/package/dsh-security-judge>（版本 `1.5.3`，`latest`）
 
 ```text
 plugin_manager install_bundle  target: dsh-security-judge
