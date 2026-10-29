@@ -1,0 +1,56 @@
+{
+  "ruleSetVersion": "v1.0",
+  "session": {
+    "id": "fixture-server",
+    "title": "fixture: server with clean code",
+    "cwd": "F:/fixtures/serve"
+  },
+  "code": {
+    "serve/package.json": "{\"name\":\"fixture-server\",\"version\":\"1.0.0\",\"dependencies\":{\"express\":\"^4.19.0\"}}\n",
+    "serve/server.js": "const express = require('express')\nconst app = express()\napp.get('/api/items', (req, res) => {\n  const user = req.user\n  if (!user || !user.permissions.includes(\"items:read\")) return res.status(403).json({ error: \"forbidden\" })\n  res.json({ ok: true })\n})\napp.listen(8080)\n"
+  },
+  "events": [
+    {
+      "type": "tool/call",
+      "seq": 1,
+      "time": 1793220002000,
+      "data": {
+        "turn": 1,
+        "step": 2,
+        "callId": "fx-2",
+        "name": "write",
+        "arguments": "{\"file_path\":\"serve/package.json\",\"content\":\"{\\\"name\\\":\\\"fixture-server\\\",\\\"version\\\":\\\"1.0.0\\\",\\\"dependencies\\\":{\\\"express\\\":\\\"^4.19.0\\\"}}\\n\"}"
+      }
+    },
+    {
+      "type": "tool/call",
+      "seq": 2,
+      "time": 1793220003000,
+      "data": {
+        "turn": 1,
+        "step": 3,
+        "callId": "fx-3",
+        "name": "write",
+        "arguments": "{\"file_path\":\"serve/server.js\",\"content\":\"const express = require('express')\\nconst app = express()\\napp.get('/api/items', (req, res) => {\\n  const user = req.user\\n  if (!user || !user.permissions.includes(\\\"items:read\\\")) return res.status(403).json({ error: \\\"forbidden\\\" })\\n  res.json({ ok: true })\\n})\\napp.listen(8080)\\n\"}"
+      }
+    }
+  ],
+  "postPassEdit": {
+    "type": "tool/call",
+    "seq": 3,
+    "time": 1793220004000,
+    "data": {
+      "turn": 2,
+      "step": 1,
+      "callId": "fx-edit",
+      "name": "edit",
+      "arguments": "{\"file_path\":\"serve/server.js\",\"old_string\":\"res.json({ ok: true })\",\"new_string\":\"res.json({ ok: true, changed: true })\"}"
+    }
+  },
+  "expected": {
+    "inScope": 65,
+    "coreArchitectures": 6,
+    "level": "III",
+    "levelRequirement": 6
+  }
+}

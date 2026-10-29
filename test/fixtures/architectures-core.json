@@ -1,0 +1,11 @@
+{
+  "ruleSetVersion": "v1.0",
+  "architectures": [
+    "sdl",
+    "asvs",
+    "slsa",
+    "sbom",
+    "zero-trust",
+    "saltzer"
+  ]
+}

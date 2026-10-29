@@ -146,6 +146,18 @@ plugin_manager install_bundle  target: F:\DSH1.0\security-judge
   插件自身提供 `dist/` 下的可分发 tarball 与干净目录验证记录，可按同样方式验证其他项目。
 - Host 插件的代码更新需要重启 DSH 才会加载新模块；面板界面在页面刷新后使用新客户端资源。
 
+## 开发流程（本机维护）
+
+- 本插件当前为**本机使用、冻结版本**：修改代码后不 bump 版本、不发布，只做本地
+  `remove_bundle` → `install_bundle` 让 Host 重载；两者之间有短暂空窗，别在这时并行跑评审。
+- **`remove_bundle` / `install_bundle` 会重置本会话的文件读取状态**：重装之后要编辑文件，
+  先重新 `read` 一次，再 `edit` / `write`。撞到 `file has not been read` 是保护机制，不是 bug。
+- 测试入口：`npm test`（引擎、Host 核心、教学模式、分发自检、回归 fixture 共 507 项）。
+- **代码改动会使评审失效、回 pending**，需要重新提交。
+- 文档改动（README / SECURITY.md / CHANGELOG）不影响评审状态，但**文档不能替代代码检查**——
+  把不安全的做法写进文档同样是漏洞。
+- 用户重新请求评审（「检查审核评审该会话」）会让会话回到 pending，需要重新提交。
+
 ## 规则与架构来源
 
 - 《代码安全防御架构规则》v1.0（2026-10-28）：A–I 九组 67 条，含 L1/L2/L3 与豁免条款；

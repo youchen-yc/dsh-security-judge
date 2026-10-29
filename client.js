@@ -876,6 +876,7 @@ window.__ModuleLoader__.load({
         categoryWhy: arr(s.categoryWhy).map((v) => text(v)).filter(Boolean),
         code: {
           doing: code.doing === true,
+          notCodeTask: code.notCodeTask === true,
           score: clamp(num(code.score), 0, 100),
           projectKind: PROJECT_KIND_LABEL[text(code.projectKind)] ? text(code.projectKind) : 'unknown',
           stacks: arr(code.stacks).map((v) => text(v)).filter(Boolean),
@@ -1412,6 +1413,13 @@ window.__ModuleLoader__.load({
             title: '用户最高权限：暂停后不再自动催办，但评审结论仍是不合格；未授权时只记录暂停意愿',
             onClick: () => props.onToggleEnforce(session.id, !review.enforcePaused),
           }, review.enforcePaused ? '恢复强制重做' : '暂停强制重做'),
+          h('button', {
+            type: 'button',
+            style: anyBusy ? { ...S.buttonSecondary, ...S.buttonDisabled } : S.buttonSecondary,
+            disabled: anyBusy,
+            title: '显式声明「这不是代码任务」后不再触发评审；可随时恢复',
+            onClick: () => props.onSetCodeTask(session.id, !code.notCodeTask),
+          }, code.notCodeTask ? '恢复为代码任务' : '这不是代码任务'),
           !authorityGranted
             ? h('span', { style: S.tiny }, '提醒属于评审权限，授权后才能使用；暂停/恢复只记录用户意愿，随时可用。')
             : (!code.doing
@@ -1874,6 +1882,13 @@ window.__ModuleLoader__.load({
           : '已恢复强制重做：不合格会继续要求重做，直到合格为止。')
       }
 
+      const setCodeTask = async (sessionId, notCodeTask) => {
+        if (!sessionId) return
+        await runAction('set-code-task', { sessionId, notCodeTask }, notCodeTask
+          ? '已标记为「不是代码任务」，之后不再触发评审。'
+          : '已恢复为代码任务，将按代码证据重新判定。')
+      }
+
       const saveAck = async (sessionId, conflictId) => {
         const resolution = text(ackText).trim()
         if (!sessionId || !conflictId || !resolution) return
@@ -2123,6 +2138,7 @@ window.__ModuleLoader__.load({
               onReview: reviewSession,
               onRemind: remindSession,
               onToggleEnforce: toggleEnforce,
+              onSetCodeTask: setCodeTask,
             })))
           : h(EmptyHint, null, '还没有识别到会话。等有会话开始做代码后，它会自动出现在这里。'),
       )

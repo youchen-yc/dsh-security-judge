@@ -1,0 +1,8 @@
+{
+  "ruleSetVersion": "v1.0",
+  "ruleSetDate": "2026-10-28",
+  "securityRuleCount": 67,
+  "deliveryRuleCount": 5,
+  "pluginRuleCount": 72,
+  "note": "A–I 为 67 条安全规则；J 组 5 条为交付规则，不计入安全规则总数。"
+}

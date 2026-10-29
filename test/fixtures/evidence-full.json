@@ -1,0 +1,265 @@
+{
+  "ruleSetVersion": "v1.0",
+  "rules": {
+    "A-01": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: A-01 已按规则落实"
+    },
+    "A-02": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: A-02 已按规则落实"
+    },
+    "A-03": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: A-03 已按规则落实"
+    },
+    "A-04": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: A-04 已按规则落实"
+    },
+    "A-05": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: A-05 已按规则落实"
+    },
+    "A-06": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: A-06 已按规则落实"
+    },
+    "A-07": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: A-07 已按规则落实"
+    },
+    "A-08": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: A-08 已按规则落实"
+    },
+    "B-01": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: B-01 已按规则落实"
+    },
+    "B-02": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: B-02 已按规则落实"
+    },
+    "B-03": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: B-03 已按规则落实"
+    },
+    "B-04": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: B-04 已按规则落实"
+    },
+    "B-06": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: B-06 已按规则落实"
+    },
+    "B-07": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: B-07 已按规则落实"
+    },
+    "B-08": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: B-08 已按规则落实"
+    },
+    "C-01": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: C-01 已按规则落实"
+    },
+    "C-02": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: C-02 已按规则落实"
+    },
+    "C-03": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: C-03 已按规则落实"
+    },
+    "C-04": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: C-04 已按规则落实"
+    },
+    "C-05": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: C-05 已按规则落实"
+    },
+    "C-06": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: C-06 已按规则落实"
+    },
+    "D-01": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: D-01 已按规则落实"
+    },
+    "D-02": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: D-02 已按规则落实"
+    },
+    "D-03": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: D-03 已按规则落实"
+    },
+    "D-04": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: D-04 已按规则落实"
+    },
+    "D-05": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: D-05 已按规则落实"
+    },
+    "D-06": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: D-06 已按规则落实"
+    },
+    "D-08": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: D-08 已按规则落实"
+    },
+    "D-09": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: D-09 已按规则落实"
+    },
+    "E-01": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: E-01 已按规则落实"
+    },
+    "E-02": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: E-02 已按规则落实"
+    },
+    "E-03": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: E-03 已按规则落实"
+    },
+    "E-04": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: E-04 已按规则落实"
+    },
+    "E-05": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: E-05 已按规则落实"
+    },
+    "E-06": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: E-06 已按规则落实"
+    },
+    "E-07": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: E-07 已按规则落实"
+    },
+    "E-09": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: E-09 已按规则落实"
+    },
+    "F-01": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: F-01 已按规则落实"
+    },
+    "F-02": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: F-02 已按规则落实"
+    },
+    "F-03": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: F-03 已按规则落实"
+    },
+    "F-04": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: F-04 已按规则落实"
+    },
+    "F-05": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: F-05 已按规则落实"
+    },
+    "F-08": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: F-08 已按规则落实"
+    },
+    "F-09": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: F-09 已按规则落实"
+    },
+    "G-01": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: G-01 已按规则落实"
+    },
+    "G-02": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: G-02 已按规则落实"
+    },
+    "G-03": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: G-03 已按规则落实"
+    },
+    "G-06": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: G-06 已按规则落实"
+    },
+    "G-07": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: G-07 已按规则落实"
+    },
+    "H-01": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: H-01 已按规则落实"
+    },
+    "H-02": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: H-02 已按规则落实"
+    },
+    "H-03": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: H-03 已按规则落实"
+    },
+    "H-04": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: H-04 已按规则落实"
+    },
+    "H-05": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: H-05 已按规则落实"
+    },
+    "I-01": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: I-01 已按规则落实"
+    },
+    "I-02": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: I-02 已按规则落实"
+    },
+    "I-03": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: I-03 已按规则落实"
+    },
+    "I-04": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: I-04 已按规则落实"
+    },
+    "I-05": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: I-05 已按规则落实"
+    },
+    "I-06": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: I-06 已按规则落实"
+    },
+    "J-01": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: J-01 已按规则落实"
+    },
+    "J-02": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: J-02 已按规则落实"
+    },
+    "J-03": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: J-03 已按规则落实"
+    },
+    "J-04": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: J-04 已按规则落实"
+    },
+    "J-05": {
+      "verdict": "pass",
+      "evidence": "fixture-v1.0: J-05 已按规则落实"
+    }
+  }
+}

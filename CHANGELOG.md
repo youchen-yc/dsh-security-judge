@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## 未发布 — 设计决策变更：origin 校验 vs token 的优先级
+
+原假设：
+- token 是最高凭证，有 token 即放行（跨站请求带 token 也能通过）。
+
+新假设：
+- origin 是准入条件，token 只是兜底凭证：
+  - 跨站 http(s) → 一律 403，与 token 无关；
+  - 无 Origin / `Origin: null` → 有 token 才放行，没有就 401；
+  - 同源 → 不需要 token。
+- token 每次启动随机生成，由 `webServer.tapIndex` 在响应时注入，不落盘。
+
+原因：
+- 凭证会泄露，origin 由浏览器强制。把准入建立在「凭证没泄露」上，等于把安全押在一个可能失效的前提上。
+- 因此跨站请求不能靠 token 放行；token 只用于「拿不到 http Origin 的合法场景」的兜底。
+
+配套：
+- `lib/httpapi.js` 的跨站判断不再看 token；
+- 自测覆盖「跨站 + 正确 token 仍 403」；
+- 分工写进 `docs/SECURITY.md` §2.1。
+
 ## 1.6.6 — 2026-10-29
 
 - 修设置页「改了数字但保持不了」：单会话强制重做上限/扫描间隔现在**改动约 1 秒自动保存**，

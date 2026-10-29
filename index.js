@@ -36,6 +36,7 @@ const TOOL_DESCRIPTION = [
   'action=conflict-ack：登记架构冲突处理结论。payload = { conflictId, resolution }。',
   'action=coach：连续不合格时获取逐条教学单（先改哪个、怎么改、补哪个架构、交什么证据、提交格式）。',
   'action=authority：查看/请求评审权限（授权只能由用户在面板点，插件不能自行授权）。',
+  'action=set-code-task：显式声明本会话是否代码任务。payload = { notCodeTask: true|false }；true 后不再触发评审，false 恢复启发式判定。',
   '用户在会话里说「检查审核评审该会话」时，评审判官会自动受理：回看该会话的代码工作并开始评审；不合格就要求该会话按规则重做，直到合格。',
   '规则要求：代码会话必须通过本评审并拿到「合格」（verdict=pass）才算完成用户任务；不合格必须重做，直到合格为止。没有在写代码的会话不评审。',
 ].join('\n')
@@ -71,13 +72,13 @@ export function apply(ctx, rawConfig = {}) {
       properties: {
         action: {
           type: 'string',
-          enum: ['status', 'checklist', 'architectures', 'submit', 'conflict-ack', 'coach', 'authority'],
+          enum: ['status', 'checklist', 'architectures', 'submit', 'conflict-ack', 'coach', 'authority', 'set-code-task'],
           description: '要执行的动作',
         },
         payload: {
           type: 'object',
           additionalProperties: true,
-          description: '动作参数。submit: {architectures?,rules,notes?}；conflict-ack: {conflictId,resolution}；authority: {request?:boolean}。',
+          description: '动作参数。submit: {architectures?,rules,notes?}；conflict-ack: {conflictId,resolution}；authority: {request?:boolean}；set-code-task: {notCodeTask:boolean}。',
         },
       },
       required: ['action'],
@@ -108,6 +109,9 @@ export function apply(ctx, rawConfig = {}) {
         }
         if (action === 'architectures') {
           return await core.toolArchitectures(agentId)
+        }
+        if (action === 'set-code-task') {
+          return await core.dispatch('set-code-task', { sessionId: agentId, notCodeTask: payload.notCodeTask !== false })
         }
         if (action === 'submit') {
           const result = await core.toolSubmit(agentId, payload)

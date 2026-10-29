@@ -85,6 +85,13 @@ function ingestAll(state, events) {
     toolCall('write', { file_path: 'app/build.gradle', content: 'android { buildTypes { release { minifyEnabled true } } }' }),
   ])
   eq(state.code.doing, true, 'Android 会话被识别为写代码')
+  state.code.notCodeTask = true
+  refreshProfile(state)
+  eq(state.code.doing, false, '显式标记「不是代码任务」后 doing 归零')
+  eq(evaluate(state, {}).state, 'na', '显式非代码任务不进入评审')
+  state.code.notCodeTask = false
+  refreshProfile(state)
+  eq(state.code.doing, true, '取消标记后按代码证据恢复 doing')
   eq(state.code.projectKind, 'android', '技术栈判定为 Android')
   const recommendation = recommendArchitectures(state)
   ok(recommendation.count >= 5, '推荐的架构数量 >= 5', `实际 ${recommendation.count}`)
@@ -215,7 +222,11 @@ function ingestAll(state, events) {
   for (const rule of evaluation.rules) {
     rules[rule.id] = { verdict: 'pass', evidence: `已完成：${rule.title}（自测证据 ${rule.id}）` }
   }
-  const submission = submitReview(state, { rules, notes: '自测提交' }, {})
+  const submission = submitReview(state, {
+    rules,
+    notes: '自测提交',
+    architectures: [...recommendation.core, ...recommendation.recommended].map((arch) => arch.id).slice(0, Math.max(recommendation.count, 8)),
+  }, {})
   eq(submission.ok, true, '评审提交被接受')
   eq(submission.evaluation.verdict, 'pass', '全部规则有证据且无冲突后评审通过')
   eq(submission.evaluation.state, 'passed', '评审状态变为 passed')

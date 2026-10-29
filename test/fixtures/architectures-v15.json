@@ -1,0 +1,20 @@
+{
+  "ruleSetVersion": "v1.0",
+  "architectures": [
+    "sdl",
+    "asvs",
+    "slsa",
+    "sbom",
+    "zero-trust",
+    "saltzer",
+    "stride",
+    "portable-dist",
+    "pqc",
+    "rbac",
+    "clark-wilson",
+    "reference-monitor",
+    "defense-in-depth",
+    "runtime-security",
+    "governance"
+  ]
+}

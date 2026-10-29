@@ -331,7 +331,10 @@ function toolCallData(name, args, turn = 1, step = 1) {
   eq(status.authority.granted, true, '工具 status 返回授权状态')
 
   // 提交评审：先全失败
-  const failedSubmit = await core.toolSubmit('session-2', { rules: {} })
+  const archs2 = await core.toolArchitectures('session-2')
+  const archAll2 = (archs2.architectures || []).map((arch) => arch.id)
+  const archIds2 = archAll2.slice(0, Math.max(archAll2.filter((id) => (archs2.architectures.find((a) => a.id === id) || {}).mandatory).length, 8))
+  const failedSubmit = await core.toolSubmit('session-2', { rules: {}, architectures: archIds2 })
   eq(failedSubmit.ok, true, '空提交被接受但结论为未通过')
   eq(failedSubmit.verdict, 'fail', '空提交评审不通过')
   ok(failedSubmit.blockers.length > 0, '空提交给出不合格原因')
@@ -351,7 +354,7 @@ function toolCallData(name, args, turn = 1, step = 1) {
   for (const conflict of architectures.conflicts || []) {
     await core.dispatch('ack-conflict', { sessionId: 'session-2', conflictId: conflict.id, resolution: '确定单一主模型并记录' })
   }
-  const passedSubmit = await core.toolSubmit('session-2', { rules, notes: '自测' })
+  const passedSubmit = await core.toolSubmit('session-2', { rules, notes: '自测', architectures: archIds2 })
   eq(passedSubmit.verdict, 'pass', '补齐证据且冲突登记后评审通过')
   eq(passedSubmit.reviewState, 'passed', '评审状态 passed')
 
@@ -468,21 +471,24 @@ function toolCallData(name, args, turn = 1, step = 1) {
     return { status: response.statusCode, headers: response.headers, body: response.body ? JSON.parse(response.body) : null }
   }
 
-  // 1) 只读 GET 不需要令牌；跨站 Origin 一律 403
-  const readNoToken = await call('GET', API_PREFIX + '/state', undefined, { token: '' })
-  eq(readNoToken.status, 200, '无令牌 GET /state 仍可读取（只读接口）')
+  // 1) 无 Origin 的只读 GET 放行（同源 GET 默认不带 Origin）；Origin=null 仍 401；跨站 403
+  const readNoOrigin = await call('GET', API_PREFIX + '/state', undefined, { origin: null, token: '' })
+  eq(readNoOrigin.status, 200, '无 Origin 的只读 GET 放行（面板加载用）')
+  const readNullOrigin = await call('GET', API_PREFIX + '/state', undefined, { origin: 'null', token: '' })
+  eq(readNullOrigin.status, 401, 'Origin=null 且无令牌 GET 返回 401（沙箱页面不放行）')
   const cross = await call('GET', API_PREFIX + '/state', undefined, { origin: 'https://evil.example', token: '' })
   eq(cross.status, 403, '跨站 Origin 被拒绝')
+  const crossWithToken = await call('GET', API_PREFIX + '/state', undefined, { origin: 'https://evil.example', fetchSite: 'cross-site' })
+  eq(crossWithToken.status, 403, '跨站请求带正确令牌也 403（token 救不了跨站）')
 
-  // 2) 无 Origin（本机进程）写操作：没有令牌 401
-  const noOriginNoToken = await call('POST', API_PREFIX + '/action', { action: 'grant-authority', payload: { confirm: true } }, { origin: null, token: '' })
-  eq(noOriginNoToken.status, 401, '无 Origin 的本机写操作没有令牌返回 401')
-  eq(noOriginNoToken.body.error.code, 'unauthorized', '无 Origin 写操作错误码正确')
-  eq(core.getAuthority().granted, false, '无 Origin 且无令牌不能授予评审权限')
+  // 2) 无 Origin（同源 GET/POST 默认形态、本机进程）写操作放行：按钮必须能用
+  const noOriginNoToken = await call('POST', API_PREFIX + '/action', { action: 'settings-save', payload: { patch: { mode: 'advisory' } } }, { origin: null, token: '' })
+  eq(noOriginNoToken.status, 200, '无 Origin 的写操作放行（同源 POST 默认不带 Origin）')
+  eq(noOriginNoToken.body.ok, true, '无 Origin 写操作成功')
 
-  // 3) 无 Origin 但伪造令牌 → 401
-  const forged = await call('POST', API_PREFIX + '/action', { action: 'grant-authority', payload: { confirm: true } }, { origin: null, token: 'forged-token' })
-  eq(forged.status, 401, '伪造令牌不能调用接口')
+  // 3) Origin=null（沙箱页面）伪造令牌 → 401
+  const forged = await call('POST', API_PREFIX + '/action', { action: 'grant-authority', payload: { confirm: true } }, { origin: 'null', token: 'forged-token' })
+  eq(forged.status, 401, 'Origin=null + 伪造令牌不能调用接口')
   eq(core.getAuthority().granted, false, '伪造令牌不能授予评审权限')
 
   // 4) 同源浏览器写操作：允许不带令牌（即使页面令牌注入失败，面板按钮也能用）
@@ -490,6 +496,14 @@ function toolCallData(name, args, turn = 1, step = 1) {
   eq(sameOriginNoToken.status, 200, '同源写操作不强制要求页面令牌（修复“暂停没反应”）')
   eq(sameOriginNoToken.body.ok, true, '同源写操作成功')
   eq(core.getAuthority().granted, true, '同源请求可以授予评审权限')
+
+  // 显式标记非代码任务：doing 归零、可恢复
+  const markNotCode = await call('POST', API_PREFIX + '/action', { action: 'set-code-task', payload: { sessionId: 'session-5', notCodeTask: true } }, { token: '' })
+  eq(markNotCode.status, 200, 'set-code-task 返回 200')
+  eq(markNotCode.body.session.code.notCodeTask, true, '视图标记 notCodeTask=true')
+  eq(markNotCode.body.session.code.doing, false, '标记后 doing=false')
+  const restoreCode = await call('POST', API_PREFIX + '/action', { action: 'set-code-task', payload: { sessionId: 'session-5', notCodeTask: false } }, { token: '' })
+  eq(restoreCode.body.session.code.notCodeTask, false, '恢复后 notCodeTask=false')
 
   // 5) 无 Origin 的本机进程带正确令牌 → 允许
   const originNullValidToken = await call('POST', API_PREFIX + '/action', { action: 'settings-save', payload: { patch: { mode: 'advisory' } } }, { origin: null })
@@ -499,7 +513,12 @@ function toolCallData(name, args, turn = 1, step = 1) {
   const shell = await call('POST', API_PREFIX + '/action', { action: 'settings-save', payload: { patch: { mode: 'block' } } }, { origin: 'null', token: '', fetchSite: 'same-origin' })
   eq(shell.status, 200, '桌面壳 Origin=null + Sec-Fetch-Site=same-origin 可写（撤销/授权不再无响应）')
   const shellCross = await call('POST', API_PREFIX + '/action', { action: 'settings-save', payload: { patch: { mode: 'advisory' } } }, { origin: 'null', token: '', fetchSite: 'cross-site' })
-  eq(shellCross.status, 403, 'Origin=null 但 Sec-Fetch-Site=cross-site 被拒绝')
+  eq(shellCross.status, 401, 'Origin=null 且无令牌（含 cross-site）→ 401')
+  // 7) Origin=null / file:// 且无令牌：一律 401，不能靠「来源为空」放行
+  const shellNoFetch = await call('POST', API_PREFIX + '/action', { action: 'settings-save', payload: { patch: { mode: 'block' } } }, { origin: 'null', token: '' })
+  eq(shellNoFetch.status, 401, 'Origin=null 且无令牌 → 401（沙箱 iframe 不能静默授权）')
+  const fileShell = await call('POST', API_PREFIX + '/action', { action: 'settings-save', payload: { patch: { mode: 'advisory' } } }, { origin: 'file://', token: '' })
+  eq(fileShell.status, 401, 'Origin=file:// 且无令牌 → 401')
 
   const state = await call('GET', API_PREFIX + '/state')
   eq(state.status, 200, 'GET /state 返回 200')
@@ -589,7 +608,10 @@ function toolCallData(name, args, turn = 1, step = 1) {
   for (const conflict of architectures.conflicts || []) {
     await core.dispatch('ack-conflict', { sessionId: 'session-6', conflictId: conflict.id, resolution: '确定单一主模型并记录' })
   }
-  const submit = await core.toolSubmit('session-6', { rules })
+  const archs6 = await core.toolArchitectures('session-6')
+  const archAll6 = (archs6.architectures || []).map((arch) => arch.id)
+  const archIds6 = archAll6.slice(0, Math.max(archAll6.filter((id) => (archs6.architectures.find((a) => a.id === id) || {}).mandatory).length, 8))
+  const submit = await core.toolSubmit('session-6', { rules, architectures: archIds6 })
   eq(submit.verdict, 'pass', '被要求评审的会话补齐证据后合格')
   const steeredAfterPass = agent.steered.length
   await harness.emit('agent/turn-stopping', { agent, turn: 2, signal: { aborted: false } })
@@ -604,6 +626,42 @@ function toolCallData(name, args, turn = 1, step = 1) {
   eq((core.sessions.get('session-7') || {}).review.requestedAt || 0, 0, '否定说法不会触发评审要求')
 
   await core.dispose()
+}
+
+// ---------------------------------------------------------------------------
+// 7. 项目根 .security-level：显式声明优先，非法值报错
+// ---------------------------------------------------------------------------
+{
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sj-level-'))
+  tempDirs.push(dir)
+  fs.writeFileSync(path.join(dir, '.security-level'), 'V\n', 'utf8')
+  const harness = createHarness()
+  harness.addSession({ id: 'session-level', title: '显式 V 级', cwd: dir, status: 'running' })
+  const core = coreFor(harness)
+  core.start()
+  await wait(30)
+  await harness.emitSessionEvent('session-level', 'tool/call', toolCallData('write', { file_path: 'server.js', content: 'const x = 1' }))
+  await wait(30)
+  const view = core.getSessionView('session-level')
+  eq(view.level, 'V', '读取项目根 .security-level 显式声明 V')
+  eq(view.levelRequirement, 15, 'V 级及格线为 15')
+
+  const badDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sj-level-bad-'))
+  tempDirs.push(badDir)
+  fs.writeFileSync(path.join(badDir, '.security-level'), 'VI\n', 'utf8')
+  const harness2 = createHarness()
+  harness2.addSession({ id: 'session-level-bad', title: '非法级别', cwd: badDir, status: 'running' })
+  const core2 = coreFor(harness2)
+  core2.start()
+  await wait(30)
+  await harness2.emitSessionEvent('session-level-bad', 'tool/call', toolCallData('write', { file_path: 'server.js', content: 'const x = 1' }))
+  await wait(30)
+  const badView = core2.getSessionView('session-level-bad')
+  eq(badView.level, 'invalid', '非法 .security-level 不静默忽略')
+  ok(String(badView.levelError || '').includes('非法值'), '非法值给出明确错误')
+
+  await core.dispose()
+  await core2.dispose()
 }
 
 // ---------------------------------------------------------------------------

@@ -56,5 +56,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "scripts": {
+    "test": "node test/selftest.mjs && node test/core-test.mjs && node test/coach-test.mjs && node test/dist-test.mjs && node test/regression.mjs"
   }
 }
